@@ -3,4 +3,5 @@ node_modules/
 dist/
 coverage/
 logs/
-config.evn
+server/config.env
+config.env
