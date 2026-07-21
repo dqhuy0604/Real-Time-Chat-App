@@ -21,7 +21,7 @@ router.post('/signup' ,async (req , res) =>{
 
         res.status(201).send({
             message : 'User created Successful',
-            success : false
+            success : true
         })
     }catch(error){
         res.send({
@@ -33,25 +33,29 @@ router.post('/signup' ,async (req , res) =>{
 
 router.post('/login', async (req , res) => {
     try{
-        const user = await User.findOne({email : req.body.email});
+        const user = await User.findOne({email: req.body.email}).select("+password");
         if(!user){
-            return res.status(400).send({
+            return res.status(404).send({
                 message : 'User dose not exist',
-                succes : false
+                success : false
             })
         }
+            console.log("req.body:", req.body);
+            console.log("Password nhập:", req.body.password);
+            console.log("User:", user);
+            console.log("Password trong DB:", user?.password);
             const isvalid = await bcrypt.compare(req.body.password , user.password);
             if(!isvalid){
-             return res.status(400).send({
+             return res.send({
                 message : 'invalid password',
-                succes : false
+                success : false
             })
         }
         const token = jwt.sign({userId : user._id}, process.env.SECRET_KEY, {expiresIn :"1d"}); 
 
         res.send({
                 message : 'user logged-in successfully', 
-                succes : true, 
+                success : true, 
                 token : token
         });
 
