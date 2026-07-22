@@ -40,10 +40,6 @@ router.post('/login', async (req , res) => {
                 success : false
             })
         }
-            console.log("req.body:", req.body);
-            console.log("Password nhập:", req.body.password);
-            console.log("User:", user);
-            console.log("Password trong DB:", user?.password);
             const isvalid = await bcrypt.compare(req.body.password , user.password);
             if(!isvalid){
              return res.send({
