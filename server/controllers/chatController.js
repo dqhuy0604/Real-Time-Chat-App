@@ -1,8 +1,8 @@
-const router = require('express').Router();
+const route = require('express').Router();
 const authMiddleware = require('../middlewares/authMiddleware');
 const Chat = require('./../models/chat');
 
-router.post('/create-new-chat',authMiddleware, async (req, res )=> {
+route.post('/create-new-chat',authMiddleware, async (req, res )=> {
     try{
         const chat = new Chat(req.body);
         const savedChat = await chat.save();
@@ -20,7 +20,7 @@ router.post('/create-new-chat',authMiddleware, async (req, res )=> {
     }
 })
 
-router.get('/get-all-chats',authMiddleware, async (req, res )=> {
+route.get('/get-all-chats',authMiddleware, async (req, res )=> {
     try{
         const allChats = await Chat.find({members : {$in :req.body.userId}});
 
@@ -36,4 +36,4 @@ router.get('/get-all-chats',authMiddleware, async (req, res )=> {
         })
     }
 })
-module.exports = router;
+module.exports = route;

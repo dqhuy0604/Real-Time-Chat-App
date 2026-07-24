@@ -1,8 +1,8 @@
-const router = require('express').Router();
+const route = require('express').Router();
 const User = require('./../models/user');
 const authMiddleware = require('./../middlewares/authMiddleware');
 
-router.get('/get-logged-user', authMiddleware , async(req, res) => {
+route.get('/get-logged-user', authMiddleware , async(req, res) => {
     try{
         const user = await User.findOne({_id: req.body.userId});
 
@@ -20,7 +20,7 @@ router.get('/get-logged-user', authMiddleware , async(req, res) => {
     }
 })
 
-router.get('/get-all-users', authMiddleware , async(req, res) => {
+route.get('/get-all-users', authMiddleware , async(req, res) => {
     try{
         const userid = req.body.userId;
         const allUsers = await User.find({_id: {$ne: userid}});
@@ -39,4 +39,4 @@ router.get('/get-all-users', authMiddleware , async(req, res) => {
     }
 })
 
-module.exports = router ;
+module.exports = route;

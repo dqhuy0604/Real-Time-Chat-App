@@ -1,10 +1,10 @@
-const router = require('express').Router();
+const route = require('express').Router();
 const authMiddleware = require('./../middlewares/authMiddleware');
 const Chat = require('./../models/chat');
 const message = require('./../models/message');
 const Message = require('./../models/message'); 
 
-router.post('/new-message', authMiddleware , async (req,res) => {
+route.post('/new-message', authMiddleware , async (req,res) => {
     try{
         const newMessage = new Message(req.body);
         const saveMessage = await newMessage.save();
@@ -34,4 +34,7 @@ router.post('/new-message', authMiddleware , async (req,res) => {
     }
 })
 
-module.exports = router;
+
+
+
+module.exports = route;
