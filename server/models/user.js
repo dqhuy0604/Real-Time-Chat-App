@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-    fristname:{
+    firstname:{
         type : String,
         require :true
     },
