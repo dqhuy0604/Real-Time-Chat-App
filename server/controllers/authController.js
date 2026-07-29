@@ -8,7 +8,7 @@ route.post('/signup' ,async (req , res) =>{
         const user = await User.findOne({email: req.body.email})
 
         if (user){
-            return res.status(400).send({
+            return res.send({
                 message : 'User already exists',
                 success : false
             })
@@ -19,7 +19,7 @@ route.post('/signup' ,async (req , res) =>{
         const newUser = new User(req.body);
         await newUser.save();
 
-        res.status(201).send({
+        res.send({
             message : 'User created Successful',
             success : true
         })
@@ -35,7 +35,7 @@ route.post('/login', async (req , res) => {
     try{
         const user = await User.findOne({email: req.body.email}).select("+password");
         if(!user){
-            return res.status(404).send({
+            return res.send({
                 message : 'User dose not exist',
                 success : false
             })
