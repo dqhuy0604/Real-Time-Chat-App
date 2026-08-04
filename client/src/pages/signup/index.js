@@ -2,11 +2,11 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { signupUser } from './../../apiCalls/auth';
 import { toast } from 'react-hot-toast';
-// import { useDispatch } from "react-redux";
-// import { showLoader, hideLoader } from "../../redux/loaderSlice";
+import { useDispatch } from "react-redux";
+import { showLoader, hideLoader } from "../../redux/loaderSlice";
 
 function Signup(){
-    // const dispatch = useDispatch();
+    const dispatch = useDispatch();
     const [user, setUser] = React.useState({
         firstname: '',
         lastname: '',
@@ -18,9 +18,9 @@ function Signup(){
         event.preventDefault();
         let response = null;
         try{
-            // dispatch(showLoader());
+            dispatch(showLoader());
             response = await signupUser(user);
-            // dispatch(hideLoader());
+            dispatch(hideLoader());
 
             if(response.success){
                 toast.success(response.message);
@@ -28,7 +28,7 @@ function Signup(){
                 toast.error(response.message);
             }
         }catch(err){
-            // dispatch(hideLoader());
+            dispatch(hideLoader());
             toast.error(response.message);
         }
     }
