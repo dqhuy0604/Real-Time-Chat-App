@@ -1,5 +1,5 @@
-// import { useSelector } from "react-redux";
-// import ChatArea from "./components/chat";
+import { useSelector } from "react-redux";
+import ChatArea from "./components/chat";
 import Header from "./components/header";
 import Sidebar from "./components/sidebar";
 // import { io } from 'socket.io-client';
@@ -8,7 +8,7 @@ import Sidebar from "./components/sidebar";
 // const socket = io('https://quick-chat-app-rql3.onrender.com');
 
 function Home(){
-    // const { selectedChat, user } = useSelector(state => state.userReducer);
+    const { selectedChat, user } = useSelector(state => state.userReducer);
     // const [onlineUser, setOnlineUser] = useState([]); 
 
     // useEffect(() => {
@@ -31,8 +31,7 @@ function Home(){
             <Header></Header>
             <div className="main-content">
             <Sidebar></Sidebar>
-                {/* <Sidebar socket={socket} onlineUser={onlineUser}></Sidebar>
-                {selectedChat && <ChatArea socket={socket}></ChatArea>} */}
+            {<ChatArea></ChatArea>}
             </div>
         </div>
     );
