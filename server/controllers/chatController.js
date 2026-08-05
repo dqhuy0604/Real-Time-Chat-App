@@ -22,7 +22,10 @@ route.post('/create-new-chat',authMiddleware, async (req, res )=> {
 
 route.get('/get-all-chats',authMiddleware, async (req, res )=> {
     try{
-        const allChats = await Chat.find({members : {$in :req.body.userId}});
+        const allChats = await Chat.find({members : {$in :req.body.userId}})
+                                                        .populate('members')
+                                                        .populate('lastMessage')
+                                                        .sort({updateAt: -1});
 
          res.status(200).send({
             message: 'Chat featched successfully', 
