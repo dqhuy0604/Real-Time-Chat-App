@@ -3,6 +3,9 @@ import { useDispatch, useSelector } from "react-redux";
 import {showLoader , hideLoader} from "../../../redux/loaderSlice";
 import { createNewMessage, getAllMessages } from "../../../apiCalls/message";
 import toast from "react-hot-toast";
+import moment from "moment";
+
+
 
 function ChatArea(){
     const dispatch = useDispatch();
@@ -46,10 +49,24 @@ function ChatArea(){
             toast.error(error.message);
         }
     }
+    const formatTime = (timestamp) => {
+        const now = moment();
+        const diff = now.diff(moment(timestamp), 'days')
 
-    useEffect(() =>{
-        getMessages();
-    }, [selectedChat])
+        if(diff < 1){
+            return `Today ${moment(timestamp).format('hh:mm A')}`;
+        }else if(diff === 1){
+            return `Yesterday ${moment(timestamp).format('hh:mm A')}`;
+        }else {
+            return moment(timestamp).format('MMM D, hh:mm A');
+        }
+    }
+
+    useEffect(() => {
+        if (selectedChat) {
+            getMessages();
+        }
+    }, [selectedChat]);
 
 
     return <>
@@ -57,10 +74,22 @@ function ChatArea(){
                     <div className="app-chat-area-header">
                         {selectedUser.firstname + ' ' +selectedUser.lastname}
                     </div>
-                    <div className="main-chat-area" id="main-chat-area">
-                         <div className="message-container" style={isCurrentUserSender ? {justifyContent: 'end'} : {justifyContent: 'start'}}>
-                            <div className="send-message"></div>
+                    <div className="main-chat-area">
+                      {allMessages.map(msg =>{
+                        const isCurrentUserSender = msg.sender === user._id;
+                         return <div className="message-container" style ={isCurrentUserSender ? {justifyContent: 'end'} :{justifyContent: 'start'}} >
+                           <div>
+                                <div className={isCurrentUserSender ? "send-message" : "received-message"}>{ msg.text }</div>
+                                <div className="message-timestamp" style={isCurrentUserSender ? {float: 'right'} : {float: 'left'}} >
+                                   {formatTime(msg.createdAt)}
+                                                    {/* { formatTime(msg.createdAt) } {isCurrentUserSender && msg.read && 
+                                                        <i className="fa fa-check-circle" aria-hidden="true" style={{color: '#e74c3c'}}></i>
+                                                    } */}
+                                                </div>
+                            </div>
                          </div>
+                      })}  
+                       
                     </div>
                     <div className="send-message-div">
                         <input type="text" 
