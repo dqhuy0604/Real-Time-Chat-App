@@ -31,7 +31,7 @@ function Home(){
             <Header></Header>
             <div className="main-content">
             <Sidebar></Sidebar>
-            {<ChatArea></ChatArea>}
+            {useSelector && <ChatArea></ChatArea>}
             </div>
         </div>
     );
