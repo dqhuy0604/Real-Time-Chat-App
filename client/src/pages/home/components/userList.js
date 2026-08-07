@@ -46,12 +46,35 @@ function UsersList({searchKey}){
         return false;
     }
     const getLastMessageTimeStamp = (userId) => {
-        const chat = allChats.find(chat => chat.members.map(m => m._id).includes(userId));
+        const chat = allChats.find(chat =>
+            chat.members.some(member => member._id === userId)
+        );
 
-        if(!chat || !chat?.lastMessage){
+        if (!chat?.lastMessage) {
             return "";
+        }
+
+        const time = moment(chat.lastMessage.createdAt);
+
+        if (time.isSame(moment(), "day")) {
+            return time.format("hh:mm A");
+        }
+
+        if (time.isSame(moment().subtract(1, "day"), "day")) {
+            return "Yesterday";
+        }
+
+        return time.format("MMM D");
+    };
+    const getUnreadMessageCount = (userId) => {
+        const chat = allChats.find(chat => 
+            chat.members.map(m => m._id).includes(userId)
+        );
+
+        if(chat && chat.unreadMessageCount && chat.lastMessage?.sender !== currentUser._id){
+            return <div className="unread-message-counter"> {chat.unreadMessageCount} </div>;
         }else{
-            return moment(chat?.lastMessage?.createdAt).format('hh:mm A');
+            return "";
         }
     }
 
@@ -65,21 +88,32 @@ function UsersList({searchKey}){
             return msgPrefix + chat?.lastMessage?.text?.substring(0, 25);
         }
     }
+
+    
     function formatName(user){
         let fname = user.firstname.at(0).toUpperCase() + user.firstname.slice(1).toLowerCase();
         let lname = user.lastname?.at(0).toUpperCase() + user.lastname.slice(1).toLowerCase();
         return fname + ' ' + lname;
     }
+
+    function getData(){
+        if(searchKey === ""){
+            return allChats;
+        }else{
+            return allUsers.filter(user => {
+                return user.firstname?.toLowerCase().includes(searchKey?.toLowerCase()) ||
+                    user.lastname?.toLowerCase().includes(searchKey?.toLowerCase());
+            });
+        }
+    }
+
     return(
-        
-        allUsers
-        .filter(user => {
-                    console.log("allChats:", allChats);
-                    console.log("allUsers:", allUsers);     
-                    return ((user.firstname.toLowerCase().includes(searchKey.toLowerCase()) ||
-                    user.lastname.toLowerCase().includes(searchKey.toLowerCase())) && searchKey
-                ) || (allChats.some(chat => chat.members.map(m => m._id).includes(user._id)))})
-        .map(user => {
+        getData()
+        .map(obj => {
+            let user =obj; 
+            if(obj.members){
+                user = obj.members.find(mem => mem._id !== currentUser._id); 
+            }
             return <div className="user-search-filter" onClick={() => openChat(user._id)} key={user._id}>
                 <div className={IsSelectedChat(user) ? "selected-user": "filtered-user"}>
                     <div className="filter-user-display">
@@ -102,7 +136,10 @@ function UsersList({searchKey}){
                             <div className="user-display-name">{user.firstname + '' + user.lastname}</div>
                             <div className="user-display-email">{ getlastMessage(user._id) || user.email }</div>
                         </div>
+                        <div>
+                            { getUnreadMessageCount(user._id) }
                             <div className="last-message-timestamp">{ getLastMessageTimeStamp(user._id)}</div>
+                        </div>
                         { !allChats.find(chat => chat.members.map(m => m._id).includes(user._id)) &&
                             <div className="user-start-chat">
                                 <button className="user-start-chat-btn" onClick={() => startNewChat(user._id)}>

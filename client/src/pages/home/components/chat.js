@@ -3,13 +3,15 @@ import { useDispatch, useSelector } from "react-redux";
 import {showLoader , hideLoader} from "../../../redux/loaderSlice";
 import { createNewMessage, getAllMessages } from "../../../apiCalls/message";
 import toast from "react-hot-toast";
+import { clearUnreadMessageCount } from "../../../apiCalls/chat";
 import moment from "moment";
+
 
 
 
 function ChatArea(){
     const dispatch = useDispatch();
-    const {selectedChat, user} = useSelector(state => state.userReducer);
+    const {selectedChat, user, allChats} = useSelector(state => state.userReducer);
     const selectedUser = selectedChat?.members?.find(u => u._id !== user._id); 
     const [message , setMessage] =useState('');
     const [allMessages , setAllMessages] = useState([]);
@@ -49,18 +51,41 @@ function ChatArea(){
             toast.error(error.message);
         }
     }
-    const formatTime = (timestamp) => {
-        const now = moment();
-        const diff = now.diff(moment(timestamp), 'days')
 
-        if(diff < 1){
-            return `Today ${moment(timestamp).format('hh:mm A')}`;
-        }else if(diff === 1){
-            return `Yesterday ${moment(timestamp).format('hh:mm A')}`;
-        }else {
-            return moment(timestamp).format('MMM D, hh:mm A');
+    const clearUnreadMessages = async () => {
+        try{
+            dispatch(showLoader());
+            const response = await clearUnreadMessageCount(selectedChat._id);
+            dispatch(hideLoader())
+
+            if(response.success){
+                allChats.map(chat => {
+                    if(chat._id === selectedChat._id){
+                        return response.data;
+                    }
+                    return chat;
+                })
+            }
+        }catch(error){
+            dispatch(hideLoader())
+            toast.error(error.message);
         }
     }
+
+    const formatTime = (timestamp) => {
+        const time = moment(timestamp);
+
+        if (time.isSame(moment(), "day")) {
+            return `Today ${time.format("hh:mm A")}`;
+        }
+
+        if (time.isSame(moment().subtract(1, "day"), "day")) {
+            return `Yesterday ${time.format("hh:mm A")}`;
+        }
+
+        return time.format("MMM D, hh:mm A");
+    };
+
     function formatName(user){
         let fname = user.firstname.at(0).toUpperCase() + user.firstname.slice(1).toLowerCase();
         let lname = user.lastname?.at(0).toUpperCase() + user.lastname.slice(1).toLowerCase();
@@ -70,6 +95,10 @@ function ChatArea(){
     useEffect(() => {
         if (selectedChat) {
             getMessages();
+            if(selectedChat?.lastMessage?.sender !== user._id){
+                clearUnreadMessages();
+            }
+        
         }
     }, [selectedChat]);
 
@@ -86,11 +115,9 @@ function ChatArea(){
                            <div>
                                 <div className={isCurrentUserSender ? "send-message" : "received-message"}>{ msg.text }</div>
                                 <div className="message-timestamp" style={isCurrentUserSender ? {float: 'right'} : {float: 'left'}} >
-                                   {formatTime(msg.createdAt)}
-                                                    {/* { formatTime(msg.createdAt) } {isCurrentUserSender && msg.read && 
-                                                        <i className="fa fa-check-circle" aria-hidden="true" style={{color: '#e74c3c'}}></i>
-                                                    } */}
-                                                </div>
+                                { formatTime(msg.createdAt) } {isCurrentUserSender && msg.read && 
+                                <i className="fa fa-check-circle" aria-hidden="true" style={{color: '#e74c3c'}}></i>}
+                                </div>
                             </div>
                          </div>
                       })}  
