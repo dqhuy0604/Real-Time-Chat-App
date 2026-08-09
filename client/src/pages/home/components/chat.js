@@ -5,16 +5,20 @@ import { createNewMessage, getAllMessages } from "../../../apiCalls/message";
 import toast from "react-hot-toast";
 import { clearUnreadMessageCount } from "../../../apiCalls/chat";
 import moment from "moment";
+import store from './../../../redux/store';
+import { setAllChats } from "../../../redux/usersSlice";
+import EmojiPicker from "emoji-picker-react";
 
 
 
-
-function ChatArea(){
+function ChatArea({socket}){
     const dispatch = useDispatch();
     const {selectedChat, user, allChats} = useSelector(state => state.userReducer);
     const selectedUser = selectedChat?.members?.find(u => u._id !== user._id); 
     const [message , setMessage] =useState('');
     const [allMessages , setAllMessages] = useState([]);
+    const [isTyping , setIstyping] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
 
     const sendMessage = async () => {
@@ -25,13 +29,18 @@ function ChatArea(){
                 text: message,
                 // image: image
             }
-            dispatch(showLoader())
-            const response = await createNewMessage(newMessage);
-            dispatch(hideLoader())                                                              
+
+            socket.emit('send-message', {
+                ...newMessage,
+                members: selectedChat.members.map(m => m._id),
+                read: false,
+                createdAt: moment().format("YYYY-MM-DD HH:mm:ss")
+            })
+
+            const response = await createNewMessage(newMessage);                                                           
             if(response.success){
-                dispatch(hideLoader())   
                 setMessage('');
-            //     // setShowEmojiPicker(false);
+                setShowEmojiPicker(false);
             }
         }catch(error){
             toast.error(error.message);
@@ -54,9 +63,13 @@ function ChatArea(){
 
     const clearUnreadMessages = async () => {
         try{
-            dispatch(showLoader());
+            socket.emit('clear-unread-messages' ,{
+                chatId : selectedChat._id,
+                members : selectedChat.members.map(m => m._id)
+            })
+
+
             const response = await clearUnreadMessageCount(selectedChat._id);
-            dispatch(hideLoader())
 
             if(response.success){
                 allChats.map(chat => {
@@ -67,7 +80,6 @@ function ChatArea(){
                 })
             }
         }catch(error){
-            dispatch(hideLoader())
             toast.error(error.message);
         }
     }
@@ -93,22 +105,65 @@ function ChatArea(){
     }
 
     useEffect(() => {
-        if (selectedChat) {
-            getMessages();
-            if(selectedChat?.lastMessage?.sender !== user._id){
+        getMessages();
+        if(selectedChat?.lastMessage?.sender !== user._id){
                 clearUnreadMessages();
             }
-        
-        }
+
+        socket.on('receive-message',(message) => {
+            const selectedChat = store.getState().userReducer.selectedChat;
+            if(selectedChat._id === message.chatId){
+                setAllMessages(prevmsg => [...prevmsg ,message])
+            }
+            if(selectedChat._id === message.chatId && message.sender !== user._id ){
+                clearUnreadMessages();
+            }
+        })
+
+        socket.on('message-count-cleared', data => {
+            const selectedChat = store.getState().userReducer.selectedChat;
+            const allChats = store.getState().userReducer.allChats;
+
+            if(selectedChat._id === data.chatId){
+                //UPDATING UNREAD MESSAGE COUNT IN CHAT OBJECT
+                const updatedChats = allChats.map(chat => {
+                    if(chat._id === data.chatId){
+                        return { ...chat, unreadMessageCount: 0}
+                    }
+                    return chat;
+                })
+                dispatch(setAllChats(updatedChats));
+                //UPDATING READ PROPRTY IN MESSAGE OBJECT
+
+                setAllMessages(prevMsgs => {
+                    return prevMsgs.map(msg => {
+                        return {...msg, read: true}
+                    })
+                })
+            }      
+        })
+
+        socket.on('started-typing', (data) => {
+            if(selectedChat._id === data.chatId && data.sender !== user._id){
+                setIstyping(true);
+                setTimeout(() =>{
+                    setIstyping(false);
+                }, 2000);
+            }
+        })
     }, [selectedChat]);
 
+    useEffect(() => {
+        const msgContainer = document.getElementById('main-chat-area')
+        msgContainer.scrollTop = msgContainer.scrollHeight;
+    }, [allMessages , isTyping])
 
     return <>
             {selectedChat && <div className="app-chat-area">
                     <div className="app-chat-area-header">
                         {formatName(selectedUser)}
                     </div>
-                    <div className="main-chat-area">
+                    <div className="main-chat-area" id="main-chat-area">
                       {allMessages.map(msg =>{
                         const isCurrentUserSender = msg.sender === user._id;
                          return <div className="message-container" style ={isCurrentUserSender ? {justifyContent: 'end'} :{justifyContent: 'start'}} >
@@ -121,8 +176,15 @@ function ChatArea(){
                             </div>
                          </div>
                       })}  
+                      <div className="typing-indicator">
+                        {isTyping && <i>typing...</i>}
+                      </div>
                        
                     </div>
+                      {showEmojiPicker  && <div>
+                        <EmojiPicker onEmojiClick={(e) => setMessage(message +e.emoji)} ></EmojiPicker>
+                    </div>}
+
                     <div className="send-message-div">
                         <input type="text" 
                             className="send-message-input" 
@@ -130,11 +192,11 @@ function ChatArea(){
                             value={message}
                             onChange={ (e) => { 
                                 setMessage(e.target.value)
-                                // socket.emit('user-typing', {
-                                //     chatId: selectedChat._id,
-                                //     members: selectedChat.members.map(m => m._id),
-                                //     sender: user._id
-                                // })
+                                socket.emit('user-typing', {
+                                    chatId: selectedChat._id,
+                                    members: selectedChat.members.map(m => m._id),
+                                    sender: user._id
+                                })
                             } 
                             }
                         />
@@ -150,6 +212,11 @@ function ChatArea(){
                             >
                             </input>
                         </label> */}
+                          <button 
+                            className="fa fa-smile-o send-emoji-btn" 
+                            aria-hidden="true"
+                            onClick={ () => { setShowEmojiPicker(!showEmojiPicker)} }>
+                        </button>
                          <button 
                             className="fa fa-paper-plane send-message-btn" 
                             aria-hidden="true"

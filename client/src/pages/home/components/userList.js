@@ -4,8 +4,10 @@ import { createNewChat } from "../../../apiCalls/chat";
 import {showLoader , hideLoader} from "../../../redux/loaderSlice";
 import { setAllChats ,setSelectedChat } from "../../../redux/usersSlice";
 import moment from "moment";
+import { useEffect } from "react";
+import store from "../../../redux/store";
 
-function UsersList({searchKey}){
+function UsersList({searchKey , socket , onlineUser}){
     const {allUsers, allChats , user: currentUser , selectedChat } = useSelector(state =>state.userReducer);
     const dispatch = useDispatch();
 
@@ -107,6 +109,36 @@ function UsersList({searchKey}){
         }
     }
 
+    useEffect(() => {
+        socket.off('set-message-count').on('receive-message', (message) =>{
+            const selectedChat = store.getState().userReducer.selectedChat;
+            let allChats = store.getState().userReducer.allChats;
+
+            if(selectedChat?._id !== message.chatId){
+                const updatedchats = allChats.map(chat =>{
+                    if(chat._id == message.chatId){
+                        return {
+                            ...chat,
+                            unreadMessageCount: (chat?.unreadMessageCount || 0) + 1,
+                            lastMessage : message
+                        }
+                    }
+                    return chat;
+                });
+                allChats =updatedchats;
+            }
+            //1. FIND THE LATEST CHAT
+            const latestChat = allChats.find(chat => chat._id === message.chatId);
+
+            //2. GET ALL OTHER CHATS
+            const otherChats = allChats.filter(chat => chat._id !== message.chatId);
+
+            //3. CREATE A NEW ARRAY LATEST CHA ON TOP & THN OTHER CHATS
+            allChats = [latestChat, ...otherChats];
+            dispatch(setAllChats(allChats));
+        })
+    }, [])
+
     return(
         getData()
         .map(obj => {
@@ -120,12 +152,12 @@ function UsersList({searchKey}){
                         {user.profilePic && <img src={user.profilePic} 
                                                 alt="Profile Pic" 
                                                 className="user-profile-image" 
-                                                // style={onlineUser.includes(user._id) ? {border: '#82e0aa 3px solid'} : {}} 
+                                                style={onlineUser.includes(user._id) ? {border: '#82e0aa 3px solid'} : {}} 
                                             />}
 
                         {!user.profilePic &&<div 
                                                 className={IsSelectedChat(user)? "user-selected-avatar" : "user-default-avatar"}
-                                                // style={onlineUser.includes(user._id) ? {border: '#82e0aa 3px solid'} : {}}
+                                                style={onlineUser.includes(user._id) ? {border: '#82e0aa 3px solid'} : {}}
                                             >
                             {
                                 user.firstname.charAt(0).toUpperCase() + 
