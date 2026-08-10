@@ -5,8 +5,6 @@ import Sidebar from "./components/sidebar";
 import { io } from 'socket.io-client';
 import { useEffect, useState } from "react";
 
-
-// const socket = io('https://quick-chat-app-rql3.onrender.com');
 const socket = io('http://localhost:5000');
 
 function Home(){
@@ -21,18 +19,21 @@ function Home(){
             socket.on('online-users', onlineusers => {
                 setOnlineUser(onlineusers);
             });
-             socket.on('online-users-updated', onlineusers => {
+            socket.on('online-users-updated', onlineusers => {
+                console.log('FRONTEND RECEIVED:', onlineusers);
                 setOnlineUser(onlineusers);
+                
             });
         }
-    },[user]);
+        
+    }, [user])
 
     return (
         <div className="home-page">
-            <Header socket = {socket}></Header>
+            <Header socket={socket}></Header>
             <div className="main-content">
-            <Sidebar socket = {socket} onlineUser = {onlineUser}></Sidebar>
-            {selectedChat && <ChatArea socket ={socket}></ChatArea>}
+                <Sidebar socket={socket} onlineUser={onlineUser}></Sidebar>
+                {selectedChat && <ChatArea socket={socket}></ChatArea>}
             </div>
         </div>
     );
