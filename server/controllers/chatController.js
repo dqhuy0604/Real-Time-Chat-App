@@ -1,9 +1,9 @@
-const route = require('express').Router();
+const router = require('express').Router();
 const authMiddleware = require('../middlewares/authMiddleware');
 const Chat = require('./../models/chat');
 const Message =require('./../models/message');
 
-route.post('/create-new-chat',authMiddleware, async (req, res )=> {
+router.post('/create-new-chat',authMiddleware, async (req, res )=> {
     try{
         const chat = new Chat(req.body);
         const savedChat = await chat.save();
@@ -23,7 +23,7 @@ route.post('/create-new-chat',authMiddleware, async (req, res )=> {
     }
 })
 
-route.get('/get-all-chats',authMiddleware, async (req, res )=> {
+router.get('/get-all-chats',authMiddleware, async (req, res )=> {
     try{
         const allChats = await Chat.find({members : {$in :req.body.userId}})
                                                         .populate('members')
@@ -43,7 +43,7 @@ route.get('/get-all-chats',authMiddleware, async (req, res )=> {
     }
 })
 
-route.post('/clear-unread-message', authMiddleware, async (req, res) => {
+router.post('/clear-unread-message', authMiddleware, async (req, res) => {
     try{
         const chatId = req.body.chatId;
 
@@ -78,4 +78,4 @@ route.post('/clear-unread-message', authMiddleware, async (req, res) => {
         })
     }
 })
-module.exports = route;
+module.exports = router;

@@ -1,9 +1,9 @@
-const route = require('express').Router();
+const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('./../models/user');
 
-route.post('/signup' ,async (req , res) =>{
+router.post('/signup' ,async (req , res) =>{
     try{
         const user = await User.findOne({email: req.body.email})
 
@@ -31,7 +31,7 @@ route.post('/signup' ,async (req , res) =>{
     }
 });
 
-route.post('/login', async (req , res) => {
+router.post('/login', async (req , res) => {
     try{
         const user = await User.findOne({email: req.body.email}).select("+password");
         if(!user){
@@ -64,4 +64,4 @@ route.post('/login', async (req , res) => {
     }
 })
 
-module.exports = route; 
+module.exports = router; 

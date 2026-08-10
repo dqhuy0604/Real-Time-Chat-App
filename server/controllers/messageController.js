@@ -1,9 +1,9 @@
-const route = require('express').Router();
+const router = require('express').Router();
 const authMiddleware = require('./../middlewares/authMiddleware');
 const Chat = require('./../models/chat');
 const Message = require('./../models/message'); 
 
-route.post('/new-message', authMiddleware , async (req,res) => {
+router.post('/new-message', authMiddleware , async (req,res) => {
     try{
         const newMessage = new Message(req.body);
         const saveMessage = await newMessage.save();
@@ -33,7 +33,7 @@ route.post('/new-message', authMiddleware , async (req,res) => {
     }
 })
 
-route.get('/get-all-messages/:chatId', authMiddleware , async (req, res) => {
+router.get('/get-all-messages/:chatId', authMiddleware , async (req, res) => {
     try{
         const allMessages = await Message.find({chatId: req.params.chatId})
                                             .sort({createdAt: 1}); 
@@ -52,4 +52,4 @@ route.get('/get-all-messages/:chatId', authMiddleware , async (req, res) => {
 
 
 
-module.exports = route;
+module.exports = router;
