@@ -21,13 +21,13 @@ function ChatArea({socket}){
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
 
-    const sendMessage = async () => {
+    const sendMessage = async (image) => {
         try{
             const newMessage = {
                 chatId: selectedChat._id,
                 sender: user._id,
                 text: message,
-                // image: image
+                image: image
             }
 
             socket.emit('send-message', {
@@ -103,6 +103,15 @@ function ChatArea({socket}){
         let lname = user.lastname?.at(0).toUpperCase() + user.lastname.slice(1).toLowerCase();
         return fname + ' ' + lname;
     }
+    const sendImage = async (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader(file);
+        reader.readAsDataURL(file);
+
+        reader.onloadend = async () => {
+            sendMessage(reader.result);
+        }
+    }
 
     useEffect(() => {
         getMessages();
@@ -168,7 +177,10 @@ function ChatArea({socket}){
                         const isCurrentUserSender = msg.sender === user._id;
                          return <div className="message-container" style ={isCurrentUserSender ? {justifyContent: 'end'} :{justifyContent: 'start'}} >
                            <div>
-                                <div className={isCurrentUserSender ? "send-message" : "received-message"}>{ msg.text }</div>
+                                <div className={isCurrentUserSender ? "send-message" : "received-message"}>
+                                    <div>  { msg.text } </div>
+                                    <div>  { msg.image && <img src = {msg.image} alt="image" height="120"></img>} </div>
+                                </div>
                                 <div className="message-timestamp" style={isCurrentUserSender ? {float: 'right'} : {float: 'left'}} >
                                 { formatTime(msg.createdAt) } {isCurrentUserSender && msg.read && 
                                 <i className="fa fa-check-circle" aria-hidden="true" style={{color: '#e74c3c'}}></i>}
@@ -182,8 +194,7 @@ function ChatArea({socket}){
                        
                     </div>
                       {showEmojiPicker  && <div>
-                        <EmojiPicker onEmojiClick={(e) => setMessage(message +e.emoji)} ></EmojiPicker>
-                    </div>}
+                        <EmojiPicker onEmojiClick={(e) => setMessage(message +e.emoji)} ></EmojiPicker></div>}
 
                     <div className="send-message-div">
                         <input type="text" 
@@ -200,24 +211,23 @@ function ChatArea({socket}){
                             } 
                             }
                         />
-                        
-                        {/* <label for="file">
+                        <label for="file">
                             <i className="fa fa-picture-o send-image-btn"></i>
                             <input
-                                // type="file"
-                                // id="file"
-                                // style={{display: 'none'}}
-                                // accept="image/jpg,image/png,image/jpeg,image/gif"
-                                // onChange={sendImage}
+                                type="file"
+                                id="file"
+                                style={{display: 'none'}}
+                                accept="image/jpg,image/png,image/jpeg,image/gif"
+                                onChange={sendImage}
                             >
                             </input>
-                        </label> */}
-                          <button 
+                        </label>
+                        <button 
                             className="fa fa-smile-o send-emoji-btn" 
                             aria-hidden="true"
                             onClick={ () => { setShowEmojiPicker(!showEmojiPicker)} }>
                         </button>
-                         <button 
+                        <button 
                             className="fa fa-paper-plane send-message-btn" 
                             aria-hidden="true"
                             onClick={ () => sendMessage('') }>

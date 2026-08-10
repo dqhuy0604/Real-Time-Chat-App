@@ -21,12 +21,15 @@ function Home(){
             socket.on('online-users', onlineusers => {
                 setOnlineUser(onlineusers);
             });
+             socket.on('online-users-updated', onlineusers => {
+                setOnlineUser(onlineusers);
+            });
         }
     },[user]);
 
     return (
         <div className="home-page">
-            <Header></Header>
+            <Header socket = {socket}></Header>
             <div className="main-content">
             <Sidebar socket = {socket} onlineUser = {onlineUser}></Sidebar>
             {selectedChat && <ChatArea socket ={socket}></ChatArea>}
