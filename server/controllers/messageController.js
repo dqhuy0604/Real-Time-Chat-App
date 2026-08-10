@@ -8,10 +8,6 @@ router.post('/new-message', authMiddleware , async (req,res) => {
         const newMessage = new Message(req.body);
         const saveMessage = await newMessage.save();
 
-        // const currentChat = await chat.findById(req.body.chatId);
-        // currentChat.lastMessage = savedMessage._id;
-        // await currentChat.save()
-
         const currentChat = await Chat.findOneAndUpdate({
             _id : req.body.chatId
         },{
