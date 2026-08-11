@@ -11,7 +11,7 @@ const messageRouter = require('./controllers/messageController');
 app.use(cors({
     origin: [
         'http://localhost:3000',
-        'https://zolaapp-client.onrender.com'
+        'https://zaloapp-client.onrender.com'
     ]
 }));
 
@@ -24,7 +24,7 @@ const io = require('socket.io')(server, {
     cors: {
         origin: [
             'http://localhost:3000',
-            'https://zolaapp-client.onrender.com'
+            'https://zaloapp-client.onrender.com'
         ],
         methods: ['GET', 'POST']
     }
