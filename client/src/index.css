@@ -712,7 +712,7 @@ input[type="file"]::file-selector-button:active {
   font-size: 18px;
   cursor: pointer;
   transition: 0.2s ease;
-}
+} 
 
 .logout-button:hover {
   color: #3498db;
